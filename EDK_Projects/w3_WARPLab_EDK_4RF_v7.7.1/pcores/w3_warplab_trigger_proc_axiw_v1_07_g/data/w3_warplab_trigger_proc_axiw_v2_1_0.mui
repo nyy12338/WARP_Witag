@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!--
+########################################################################
+##
+## Copyright (c) 2010 Xilinx, Inc.  All rights reserved.
+##
+########################################################################
+-->
+
+<!DOCTYPE doc SYSTEM "sg_ipdialog.dtd" [
+<!ENTITY C_BASEADDR '
+<widget id="C_BASEADDR">
+    <key>C_BASEADDR</key>
+    <label>C_BASEADDR</label>
+    <tip>Base Address</tip>
+</widget>
+'>
+<!ENTITY C_HIGHADDR '
+<widget id="C_HIGHADDR">
+    <key>C_HIGHADDR</key>
+    <label>C_HIGHADDR</label>
+    <tip>High Address</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_CORE_INFO '
+<widget id="C_MEMMAP_CORE_INFO">
+    <key>C_MEMMAP_CORE_INFO</key>
+    <label>C_MEMMAP_CORE_INFO</label>
+    <tip>From Register
+    data type: UFix_24_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_OUT '
+<widget id="C_MEMMAP_TRIG_OUT">
+    <key>C_MEMMAP_TRIG_OUT</key>
+    <label>C_MEMMAP_TRIG_OUT</label>
+    <tip>From Register
+    data type: UFix_6_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_ODELAY_CFG_CMPLL '
+<widget id="C_MEMMAP_TRIG_ODELAY_CFG_CMPLL">
+    <key>C_MEMMAP_TRIG_ODELAY_CFG_CMPLL</key>
+    <label>C_MEMMAP_TRIG_ODELAY_CFG_CMPLL</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_IDELAY_CFG_CMPLL '
+<widget id="C_MEMMAP_TRIG_IDELAY_CFG_CMPLL">
+    <key>C_MEMMAP_TRIG_IDELAY_CFG_CMPLL</key>
+    <label>C_MEMMAP_TRIG_IDELAY_CFG_CMPLL</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_ODELAY_CFG_DEBUG_HDR '
+<widget id="C_MEMMAP_TRIG_ODELAY_CFG_DEBUG_HDR">
+    <key>C_MEMMAP_TRIG_ODELAY_CFG_DEBUG_HDR</key>
+    <label>C_MEMMAP_TRIG_ODELAY_CFG_DEBUG_HDR</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_IDELAY_CFG_DEBUG_HDR '
+<widget id="C_MEMMAP_TRIG_IDELAY_CFG_DEBUG_HDR">
+    <key>C_MEMMAP_TRIG_IDELAY_CFG_DEBUG_HDR</key>
+    <label>C_MEMMAP_TRIG_IDELAY_CFG_DEBUG_HDR</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_IODELAYS_CONTROL '
+<widget id="C_MEMMAP_TRIG_IODELAYS_CONTROL">
+    <key>C_MEMMAP_TRIG_IODELAYS_CONTROL</key>
+    <label>C_MEMMAP_TRIG_IODELAYS_CONTROL</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_RSSI_PKT_DET_CONFIG '
+<widget id="C_MEMMAP_RSSI_PKT_DET_CONFIG">
+    <key>C_MEMMAP_RSSI_PKT_DET_CONFIG</key>
+    <label>C_MEMMAP_RSSI_PKT_DET_CONFIG</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_IN_CONF_6 '
+<widget id="C_MEMMAP_TRIG_IN_CONF_6">
+    <key>C_MEMMAP_TRIG_IN_CONF_6</key>
+    <label>C_MEMMAP_TRIG_IN_CONF_6</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_IN_CONF_5 '
+<widget id="C_MEMMAP_TRIG_IN_CONF_5">
+    <key>C_MEMMAP_TRIG_IN_CONF_5</key>
+    <label>C_MEMMAP_TRIG_IN_CONF_5</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_IN_CONF_4 '
+<widget id="C_MEMMAP_TRIG_IN_CONF_4">
+    <key>C_MEMMAP_TRIG_IN_CONF_4</key>
+    <label>C_MEMMAP_TRIG_IN_CONF_4</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_IN_CONF_3 '
+<widget id="C_MEMMAP_TRIG_IN_CONF_3">
+    <key>C_MEMMAP_TRIG_IN_CONF_3</key>
+    <label>C_MEMMAP_TRIG_IN_CONF_3</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_IN_CONF_2 '
+<widget id="C_MEMMAP_TRIG_IN_CONF_2">
+    <key>C_MEMMAP_TRIG_IN_CONF_2</key>
+    <label>C_MEMMAP_TRIG_IN_CONF_2</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_IN_CONF_0 '
+<widget id="C_MEMMAP_TRIG_IN_CONF_0">
+    <key>C_MEMMAP_TRIG_IN_CONF_0</key>
+    <label>C_MEMMAP_TRIG_IN_CONF_0</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_IN_CONF_8 '
+<widget id="C_MEMMAP_TRIG_IN_CONF_8">
+    <key>C_MEMMAP_TRIG_IN_CONF_8</key>
+    <label>C_MEMMAP_TRIG_IN_CONF_8</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_IN_CONF_7 '
+<widget id="C_MEMMAP_TRIG_IN_CONF_7">
+    <key>C_MEMMAP_TRIG_IN_CONF_7</key>
+    <label>C_MEMMAP_TRIG_IN_CONF_7</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_OUT_5_CONF_0 '
+<widget id="C_MEMMAP_TRIG_OUT_5_CONF_0">
+    <key>C_MEMMAP_TRIG_OUT_5_CONF_0</key>
+    <label>C_MEMMAP_TRIG_OUT_5_CONF_0</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_OUT_5_CONF_1 '
+<widget id="C_MEMMAP_TRIG_OUT_5_CONF_1">
+    <key>C_MEMMAP_TRIG_OUT_5_CONF_1</key>
+    <label>C_MEMMAP_TRIG_OUT_5_CONF_1</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_OUT_4_CONF_0 '
+<widget id="C_MEMMAP_TRIG_OUT_4_CONF_0">
+    <key>C_MEMMAP_TRIG_OUT_4_CONF_0</key>
+    <label>C_MEMMAP_TRIG_OUT_4_CONF_0</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_OUT_0_CONF_0 '
+<widget id="C_MEMMAP_TRIG_OUT_0_CONF_0">
+    <key>C_MEMMAP_TRIG_OUT_0_CONF_0</key>
+    <label>C_MEMMAP_TRIG_OUT_0_CONF_0</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_OUT_4_CONF_1 '
+<widget id="C_MEMMAP_TRIG_OUT_4_CONF_1">
+    <key>C_MEMMAP_TRIG_OUT_4_CONF_1</key>
+    <label>C_MEMMAP_TRIG_OUT_4_CONF_1</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_OUT_3_CONF_0 '
+<widget id="C_MEMMAP_TRIG_OUT_3_CONF_0">
+    <key>C_MEMMAP_TRIG_OUT_3_CONF_0</key>
+    <label>C_MEMMAP_TRIG_OUT_3_CONF_0</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_OUT_3_CONF_1 '
+<widget id="C_MEMMAP_TRIG_OUT_3_CONF_1">
+    <key>C_MEMMAP_TRIG_OUT_3_CONF_1</key>
+    <label>C_MEMMAP_TRIG_OUT_3_CONF_1</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_OUT_2_CONF_0 '
+<widget id="C_MEMMAP_TRIG_OUT_2_CONF_0">
+    <key>C_MEMMAP_TRIG_OUT_2_CONF_0</key>
+    <label>C_MEMMAP_TRIG_OUT_2_CONF_0</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_OUT_2_CONF_1 '
+<widget id="C_MEMMAP_TRIG_OUT_2_CONF_1">
+    <key>C_MEMMAP_TRIG_OUT_2_CONF_1</key>
+    <label>C_MEMMAP_TRIG_OUT_2_CONF_1</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_OUT_1_CONF_0 '
+<widget id="C_MEMMAP_TRIG_OUT_1_CONF_0">
+    <key>C_MEMMAP_TRIG_OUT_1_CONF_0</key>
+    <label>C_MEMMAP_TRIG_OUT_1_CONF_0</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_OUT_1_CONF_1 '
+<widget id="C_MEMMAP_TRIG_OUT_1_CONF_1">
+    <key>C_MEMMAP_TRIG_OUT_1_CONF_1</key>
+    <label>C_MEMMAP_TRIG_OUT_1_CONF_1</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_OUT_0_CONF_1 '
+<widget id="C_MEMMAP_TRIG_OUT_0_CONF_1">
+    <key>C_MEMMAP_TRIG_OUT_0_CONF_1</key>
+    <label>C_MEMMAP_TRIG_OUT_0_CONF_1</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_RSSI_PKT_DET_DURATIONS '
+<widget id="C_MEMMAP_RSSI_PKT_DET_DURATIONS">
+    <key>C_MEMMAP_RSSI_PKT_DET_DURATIONS</key>
+    <label>C_MEMMAP_RSSI_PKT_DET_DURATIONS</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_RSSI_PKT_DET_THRESHOLDS '
+<widget id="C_MEMMAP_RSSI_PKT_DET_THRESHOLDS">
+    <key>C_MEMMAP_RSSI_PKT_DET_THRESHOLDS</key>
+    <label>C_MEMMAP_RSSI_PKT_DET_THRESHOLDS</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_TRIG_IN_CONF_1 '
+<widget id="C_MEMMAP_TRIG_IN_CONF_1">
+    <key>C_MEMMAP_TRIG_IN_CONF_1</key>
+    <label>C_MEMMAP_TRIG_IN_CONF_1</label>
+    <tip>To Register
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_PKTOPS1 '
+<widget id="C_MEMMAP_PKTOPS1">
+    <key>C_MEMMAP_PKTOPS1</key>
+    <label>C_MEMMAP_PKTOPS1</label>
+    <tip>Shared Memory
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_PKTTEMPLATE1 '
+<widget id="C_MEMMAP_PKTTEMPLATE1">
+    <key>C_MEMMAP_PKTTEMPLATE1</key>
+    <label>C_MEMMAP_PKTTEMPLATE1</label>
+    <tip>Shared Memory
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_PKTOPS0 '
+<widget id="C_MEMMAP_PKTOPS0">
+    <key>C_MEMMAP_PKTOPS0</key>
+    <label>C_MEMMAP_PKTOPS0</label>
+    <tip>Shared Memory
+    data type: UFix_32_0</tip>
+</widget>
+'>
+<!ENTITY C_MEMMAP_PKTTEMPLATE0 '
+<widget id="C_MEMMAP_PKTTEMPLATE0">
+    <key>C_MEMMAP_PKTTEMPLATE0</key>
+    <label>C_MEMMAP_PKTTEMPLATE0</label>
+    <tip>Shared Memory
+    data type: UFix_32_0</tip>
+</widget>
+'>
+]>
+
+<doc>
+<view id="Memory Map Information">
+    <display>Memory Map Information</display>
+    <group id="All">
+        <display>All</display>
+        <item>&C_BASEADDR;</item>
+        <item>&C_HIGHADDR;</item>
+        <item>&C_MEMMAP_CORE_INFO;</item>
+        <item>&C_MEMMAP_TRIG_OUT;</item>
+        <item>&C_MEMMAP_TRIG_ODELAY_CFG_CMPLL;</item>
+        <item>&C_MEMMAP_TRIG_IDELAY_CFG_CMPLL;</item>
+        <item>&C_MEMMAP_TRIG_ODELAY_CFG_DEBUG_HDR;</item>
+        <item>&C_MEMMAP_TRIG_IDELAY_CFG_DEBUG_HDR;</item>
+        <item>&C_MEMMAP_TRIG_IODELAYS_CONTROL;</item>
+        <item>&C_MEMMAP_RSSI_PKT_DET_CONFIG;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_6;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_5;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_4;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_3;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_2;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_0;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_8;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_7;</item>
+        <item>&C_MEMMAP_TRIG_OUT_5_CONF_0;</item>
+        <item>&C_MEMMAP_TRIG_OUT_5_CONF_1;</item>
+        <item>&C_MEMMAP_TRIG_OUT_4_CONF_0;</item>
+        <item>&C_MEMMAP_TRIG_OUT_0_CONF_0;</item>
+        <item>&C_MEMMAP_TRIG_OUT_4_CONF_1;</item>
+        <item>&C_MEMMAP_TRIG_OUT_3_CONF_0;</item>
+        <item>&C_MEMMAP_TRIG_OUT_3_CONF_1;</item>
+        <item>&C_MEMMAP_TRIG_OUT_2_CONF_0;</item>
+        <item>&C_MEMMAP_TRIG_OUT_2_CONF_1;</item>
+        <item>&C_MEMMAP_TRIG_OUT_1_CONF_0;</item>
+        <item>&C_MEMMAP_TRIG_OUT_1_CONF_1;</item>
+        <item>&C_MEMMAP_TRIG_OUT_0_CONF_1;</item>
+        <item>&C_MEMMAP_RSSI_PKT_DET_DURATIONS;</item>
+        <item>&C_MEMMAP_RSSI_PKT_DET_THRESHOLDS;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_1;</item>
+        <item>&C_MEMMAP_PKTOPS1;</item>
+        <item>&C_MEMMAP_PKTTEMPLATE1;</item>
+        <item>&C_MEMMAP_PKTOPS0;</item>
+        <item>&C_MEMMAP_PKTTEMPLATE0;</item>
+    </group>
+    <group id="From/To Registers">
+        <display>From/To Registers</display>
+        <item>&C_BASEADDR;</item>
+        <item>&C_HIGHADDR;</item>
+        <item>&C_MEMMAP_CORE_INFO;</item>
+        <item>&C_MEMMAP_TRIG_OUT;</item>
+        <item>&C_MEMMAP_TRIG_ODELAY_CFG_CMPLL;</item>
+        <item>&C_MEMMAP_TRIG_IDELAY_CFG_CMPLL;</item>
+        <item>&C_MEMMAP_TRIG_ODELAY_CFG_DEBUG_HDR;</item>
+        <item>&C_MEMMAP_TRIG_IDELAY_CFG_DEBUG_HDR;</item>
+        <item>&C_MEMMAP_TRIG_IODELAYS_CONTROL;</item>
+        <item>&C_MEMMAP_RSSI_PKT_DET_CONFIG;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_6;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_5;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_4;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_3;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_2;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_0;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_8;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_7;</item>
+        <item>&C_MEMMAP_TRIG_OUT_5_CONF_0;</item>
+        <item>&C_MEMMAP_TRIG_OUT_5_CONF_1;</item>
+        <item>&C_MEMMAP_TRIG_OUT_4_CONF_0;</item>
+        <item>&C_MEMMAP_TRIG_OUT_0_CONF_0;</item>
+        <item>&C_MEMMAP_TRIG_OUT_4_CONF_1;</item>
+        <item>&C_MEMMAP_TRIG_OUT_3_CONF_0;</item>
+        <item>&C_MEMMAP_TRIG_OUT_3_CONF_1;</item>
+        <item>&C_MEMMAP_TRIG_OUT_2_CONF_0;</item>
+        <item>&C_MEMMAP_TRIG_OUT_2_CONF_1;</item>
+        <item>&C_MEMMAP_TRIG_OUT_1_CONF_0;</item>
+        <item>&C_MEMMAP_TRIG_OUT_1_CONF_1;</item>
+        <item>&C_MEMMAP_TRIG_OUT_0_CONF_1;</item>
+        <item>&C_MEMMAP_RSSI_PKT_DET_DURATIONS;</item>
+        <item>&C_MEMMAP_RSSI_PKT_DET_THRESHOLDS;</item>
+        <item>&C_MEMMAP_TRIG_IN_CONF_1;</item>
+    </group>
+    <group id="From/To FIFOs">
+        <display>From/To FIFOs</display>
+        <item>&C_BASEADDR;</item>
+        <item>&C_HIGHADDR;</item>
+    </group>
+    <group id="Shared Memories">
+        <display>Shared Memories</display>
+        <item>&C_BASEADDR;</item>
+        <item>&C_HIGHADDR;</item>
+        <item>&C_MEMMAP_PKTOPS1;</item>
+        <item>&C_MEMMAP_PKTTEMPLATE1;</item>
+        <item>&C_MEMMAP_PKTOPS0;</item>
+        <item>&C_MEMMAP_PKTTEMPLATE0;</item>
+    </group>
+</view>
+</doc>
