@@ -11,7 +11,7 @@ clear
 % Params:
 USE_WARPLAB_TXRX        = 1;           % Enable WARPLab-in-the-loop (otherwise sim-only)
 WRITE_PNG_FILES         = 0;           % Enable writing plots to PNG
-CHANNEL                 = 11;          % Channel to tune Tx and Rx radios
+CHANNEL                 = 6;          % Channel to tune Tx and Rx radios
 
 % Waveform params
 N_OFDM_SYMS             = 500;         % Number of OFDM symbols
@@ -76,11 +76,11 @@ if(USE_WARPLAB_TXRX)
     % Set up the TX / RX nodes and RF interfaces
     TX_RF     = ifc_ids_TX.RF_A;
     TX_RF_VEC = ifc_ids_TX.RF_A;
-    TX_RF_ALL = ifc_ids_TX.RF_ALL;
+    TX_RF_ALL = ifc_ids_TX.RF_A;
     
     RX_RF     = ifc_ids_TX.RF_B;
     RX_RF_VEC = ifc_ids_TX.RF_B;
-    RX_RF_ALL = ifc_ids_TX.RF_ALL;
+    RX_RF_ALL = ifc_ids_TX.RF_B;
 
     % Set up the interface for the experiment
     wl_interfaceCmd(node_tx, TX_RF_ALL, 'channel', 2.4, CHANNEL);
@@ -153,7 +153,8 @@ if(num_samps_needed > maximum_buffer_len)
 end
 
 %% Generate a payload of random integers
-tx_data = randi(MOD_ORDER, 1, N_DATA_SYMS) - 1;
+%tx_data = randi(MOD_ORDER, 1, N_DATA_SYMS) - 1;
+tx_data = zeros(1, N_DATA_SYMS)  + 1;
 
 % Functions for data -> complex symbol mapping (like qammod, avoids comm toolbox requirement)
 % These anonymous functions implement the modulation mapping from IEEE 802.11-2012 Section 18.3.5.8
@@ -409,38 +410,23 @@ pilot_phase_corr = exp(-1i*(pilot_phase_err_corr));
 syms_eq_pc_mat = syms_eq_mat .* pilot_phase_corr;
 payload_syms_mat = syms_eq_pc_mat(SC_IND_DATA, :);
 
-%% Demodulate
-rx_syms = reshape(payload_syms_mat, 1, N_DATA_SYMS);
 
-demod_fcn_bpsk = @(x) double(real(x)>0);
-demod_fcn_qpsk = @(x) double(2*(real(x)>0) + 1*(imag(x)>0));
-demod_fcn_16qam = @(x) (8*(real(x)>0)) + (4*(abs(real(x))<0.6325)) + (2*(imag(x)>0)) + (1*(abs(imag(x))<0.6325));
-demod_fcn_64qam = @(x) (32*(real(x)>0)) + (16*(abs(real(x))<0.6172)) + (8*((abs(real(x))<(0.9258))&&((abs(real(x))>(0.3086))))) + (4*(imag(x)>0)) + (2*(abs(imag(x))<0.6172)) + (1*((abs(imag(x))<(0.9258))&&((abs(imag(x))>(0.3086)))));
-
-switch(MOD_ORDER)
-    case 2         % BPSK
-        rx_data = arrayfun(demod_fcn_bpsk, rx_syms);
-    case 4         % QPSK
-        rx_data = arrayfun(demod_fcn_qpsk, rx_syms);
-    case 16        % 16-QAM
-        rx_data = arrayfun(demod_fcn_16qam, rx_syms);
-    case 64        % 64-QAM
-        rx_data = arrayfun(demod_fcn_64qam, rx_syms);
-end
-
+% tx to tag snr calculate
 evm_mat = abs(payload_syms_mat - tx_syms_mat).^2;
 aevms = mean(evm_mat(:));
+snr = 1./sqrt(aevms);
 
 fprintf('Stage 1 finish\n\n'); 
 
 if(USE_WARPLAB_TXRX)
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Set up the WARPLab experiment Stage 2 (tx tag to rx)
+    % Set up the WARPLab experiment Stage 2 (tx tag to rx)4
+    % prepare tag's data
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%     NUMNODES = 2;
-%     nodesConfig = wl_nodesConfig('read', 'my_node_config_file.txt');
+    %NUMNODES = 2;
+    %nodesConfig = wl_nodesConfig('read', 'my_node_config_file.txt');
     % Create a vector of node objects
     %nodes   = wl_initNodes(NUMNODES);
     nodes = wl_initNodes(nodesConfig);
@@ -467,9 +453,6 @@ if(USE_WARPLAB_TXRX)
     ifc_ids_RX = wl_getInterfaceIDs(node_rx);
 
     % Set up the TX / RX nodes and RF interfaces
-    %TX_RF     = ifc_ids_TX.RF_A;
-    %TX_RF_VEC = ifc_ids_TX.RF_A;
-    %TX_RF_ALL = ifc_ids_TX.RF_ALL;
     TX_RF     = ifc_ids_TX.RF_ON_BOARD;
     TX_RF_VEC = ifc_ids_TX.RF_ON_BOARD_VEC;
     TX_RF_VEC1 = ifc_ids_TX.RF_A;
@@ -514,47 +497,46 @@ else
     example_mode_string = 'sim';
 end
 
-% %% Define a half-band 2x interpolation filter response
-% interp_filt2 = zeros(1,43);
-% interp_filt2([1 3 5 7 9 11 13 15 17 19 21]) = [12 -32 72 -140 252 -422 682 -1086 1778 -3284 10364];
-% interp_filt2([23 25 27 29 31 33 35 37 39 41 43]) = interp_filt2(fliplr([1 3 5 7 9 11 13 15 17 19 21]));
-% interp_filt2(22) = 16384;
-% interp_filt2 = interp_filt2./max(abs(interp_filt2));
-% 
-% % Define the preamble
-% % Note: The STS symbols in the preamble meet the requirements needed by the
-% % AGC core at the receiver. Details on the operation of the AGC are
-% % available on the wiki: http://warpproject.org/trac/wiki/WARPLab/AGC
-% sts_f = zeros(1,64);
-% sts_f(1:27) = [0 0 0 0 -1-1i 0 0 0 -1-1i 0 0 0 1+1i 0 0 0 1+1i 0 0 0 1+1i 0 0 0 1+1i 0 0];
-% sts_f(39:64) = [0 0 1+1i 0 0 0 -1-1i 0 0 0 1+1i 0 0 0 -1-1i 0 0 0 -1-1i 0 0 0 1+1i 0 0 0];
-% sts_t = ifft(sqrt(13/6).*sts_f, 64);
-% sts_t = sts_t(1:16);
-% 
-% % LTS for CFO and channel estimation
-% lts_f = [0 1 -1 -1 1 1 -1 1 -1 1 -1 -1 -1 -1 -1 1 1 -1 -1 1 -1 1 -1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 -1 -1 1 1 -1 1 -1 1 1 1 1 1 1 -1 -1 1 1 -1 1 -1 1 1 1 1];
-% lts_t = ifft(lts_f, 64);
-% 
-% % Use 30 copies of the 16-sample STS for extra AGC settling margin
-% preamble = [repmat(sts_t, 1, 30)  lts_t(33:64) lts_t lts_t];
- witag_preamble = ones(size(preamble));
-% 
-% % Sanity check variables that affect the number of Tx samples
-% num_samps_needed = ceil((TRIGGER_OFFSET_TOL_NS*1e-9) / (1/SAMP_FREQ)) + ...
-%                     INTERP_RATE*((N_OFDM_SYMS * (N_SC + CP_LEN)) + length(preamble) +  ceil(length(interp_filt2)/2));
-% 
-%                                 
-% if(num_samps_needed > maximum_buffer_len)
-%     fprintf('Too many OFDM symbols for TX_NUM_SAMPS!\n');
-%     fprintf('Raise MAX_TX_LEN to %d, or \n', num_samps_needed);
-%     fprintf('Reduce N_OFDM_SYMS to %d\n', floor(((maximum_buffer_len - ceil((TRIGGER_OFFSET_TOL_NS*1e-9) / (1/SAMP_FREQ)))/INTERP_RATE - (length(preamble) +  ceil(length(interp_filt2)/2)))/(N_SC + CP_LEN)));
-%     return;
-% end
+%% Define a half-band 2x interpolation filter response
+interp_filt2 = zeros(1,43);
+interp_filt2([1 3 5 7 9 11 13 15 17 19 21]) = [12 -32 72 -140 252 -422 682 -1086 1778 -3284 10364];
+interp_filt2([23 25 27 29 31 33 35 37 39 41 43]) = interp_filt2(fliplr([1 3 5 7 9 11 13 15 17 19 21]));
+interp_filt2(22) = 16384;
+interp_filt2 = interp_filt2./max(abs(interp_filt2));
+
+% Define the preamble
+% Note: The STS symbols in the preamble meet the requirements needed by the
+% AGC core at the receiver. Details on the operation of the AGC are
+% available on the wiki: http://warpproject.org/trac/wiki/WARPLab/AGC
+sts_f = zeros(1,64);
+sts_f(1:27) = [0 0 0 0 -1-1i 0 0 0 -1-1i 0 0 0 1+1i 0 0 0 1+1i 0 0 0 1+1i 0 0 0 1+1i 0 0];
+sts_f(39:64) = [0 0 1+1i 0 0 0 -1-1i 0 0 0 1+1i 0 0 0 -1-1i 0 0 0 -1-1i 0 0 0 1+1i 0 0 0];
+sts_t = ifft(sqrt(13/6).*sts_f, 64);
+sts_t = sts_t(1:16);
+
+% LTS for CFO and channel estimation
+lts_f = [0 1 -1 -1 1 1 -1 1 -1 1 -1 -1 -1 -1 -1 1 1 -1 -1 1 -1 1 -1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 1 -1 -1 1 1 -1 1 -1 1 1 1 1 1 1 -1 -1 1 1 -1 1 -1 1 1 1 1];
+lts_t = ifft(lts_f, 64);
+
+% Use 30 copies of the 16-sample STS for extra AGC settling margin
+preamble = [repmat(sts_t, 1, 30)  lts_t(33:64) lts_t lts_t];
+
+% Sanity check variables that affect the number of Tx samples
+num_samps_needed = ceil((TRIGGER_OFFSET_TOL_NS*1e-9) / (1/SAMP_FREQ)) + ...
+                    INTERP_RATE*((N_OFDM_SYMS * (N_SC + CP_LEN)) + length(preamble) +  ceil(length(interp_filt2)/2));
+
+                                
+if(num_samps_needed > maximum_buffer_len)
+    fprintf('Too many OFDM symbols for TX_NUM_SAMPS!\n');
+    fprintf('Raise MAX_TX_LEN to %d, or \n', num_samps_needed);
+    fprintf('Reduce N_OFDM_SYMS to %d\n', floor(((maximum_buffer_len - ceil((TRIGGER_OFFSET_TOL_NS*1e-9) / (1/SAMP_FREQ)))/INTERP_RATE - (length(preamble) +  ceil(length(interp_filt2)/2)))/(N_SC + CP_LEN)));
+    return;
+end
 
 %% Generate a payload of random integers
 %tx_data = randi(MOD_ORDER, 1, N_DATA_SYMS) - 1;
-%witag_data = zeros(1, N_DATA_SYMS) ;
-witag_data = randi(MOD_ORDER, 1, N_DATA_SYMS) - 1;
+%witag_data = zeros(1, N_DATA_SYMS)  ;
+%witag_data = randi(MOD_ORDER, 1, N_DATA_SYMS) - 1;
 
 % Functions for data -> complex symbol mapping (like qammod, avoids comm toolbox requirement)
 % These anonymous functions implement the modulation mapping from IEEE 802.11-2012 Section 18.3.5.8
@@ -568,78 +550,76 @@ witag_data = randi(MOD_ORDER, 1, N_DATA_SYMS) - 1;
 % mod_fcn_64qam = @(x) complex(modvec_64qam(1+bitshift(x, -3)), modvec_64qam(1+mod(x,8)));
 % 
 % Map the data values on to complex symbols
-switch MOD_ORDER
-    case 2         % BPSK
-        %tx_syms = arrayfun(mod_fcn_bpsk, tx_data);
-        witag_syms = arrayfun(mod_fcn_bpsk, witag_data);
-    case 4         % QPSK
-        %tx_syms = arrayfun(mod_fcn_qpsk, tx_data);
-        witag_syms = arrayfun(mod_fcn_qpsk, witag_data);
-    case 16        % 16-QAM
-        %tx_syms = arrayfun(mod_fcn_16qam, tx_data);
-        witag_syms = arrayfun(mod_fcn_16qam, witag_data);
-    case 64        % 64-QAM
-        %tx_syms = arrayfun(mod_fcn_64qam, tx_data);
-        witag_syms = arrayfun(mod_fcn_64qam, witag_data);
-    otherwise
-        fprintf('Invalid MOD_ORDER (%d)!  Must be in [2, 4, 16, 64]\n', MOD_ORDER);
-        return;
-end
-
-% simulate the amplitude across distance (/ sqrt(dis))
-%tx_syms = tx_syms / sqrt(8);
-%witag_syms = witag_syms / sqrt(1./aevms);
-
-witag_syms = witag_syms.^(1./aevms);
+% switch MOD_ORDER
+%     case 2         % BPSK
+%         %tx_syms = arrayfun(mod_fcn_bpsk, tx_data);
+%         witag_syms = arrayfun(mod_fcn_bpsk, witag_data);
+%     case 4         % QPSK
+%         %tx_syms = arrayfun(mod_fcn_qpsk, tx_data);
+%         witag_syms = arrayfun(mod_fcn_qpsk, witag_data);
+%     case 16        % 16-QAM
+%         %tx_syms = arrayfun(mod_fcn_16qam, tx_data);
+%         witag_syms = arrayfun(mod_fcn_16qam, witag_data);
+%     case 64        % 64-QAM
+%         %tx_syms = arrayfun(mod_fcn_64qam, tx_data);
+%         witag_syms = arrayfun(mod_fcn_64qam, witag_data);
+%     otherwise
+%         fprintf('Invalid MOD_ORDER (%d)!  Must be in [2, 4, 16, 64]\n', MOD_ORDER);
+%         return;
+% end
 
 % Reshape the symbol vector to a matrix with one column per OFDM symbol
-tx_syms_mat = reshape(tx_syms, length(SC_IND_DATA), N_OFDM_SYMS);
+%tx_syms_mat = reshape(tx_syms, length(SC_IND_DATA), N_OFDM_SYMS);
+witag_syms = zeros(1, N_DATA_SYMS)  ;
 witag_syms_mat = reshape(witag_syms, length(SC_IND_DATA), N_OFDM_SYMS);
+witag_syms_mat(2:2:end, :) = 1;
 
 % Define the pilot tone values as BPSK symbols
 pilots = [1 1 -1 1].';
-witag_pilots = [1 1 1 1].'; % give one for no H estimate
 
 % Repeat the pilots across all OFDM symbols
-pilots_mat = repmat(pilots, 1, N_OFDM_SYMS);
-witag_pilots_mat = repmat(witag_pilots, 1, N_OFDM_SYMS);
+%pilots_mat = repmat(pilots, 1, N_OFDM_SYMS);
+witag_pilots_mat = repmat(pilots, 1, N_OFDM_SYMS);
 
 %% IFFT
 
 % Construct the IFFT input matrix
-ifft_in_mat = zeros(N_SC, N_OFDM_SYMS);
+%ifft_in_mat = zeros(N_SC, N_OFDM_SYMS);
 ifft_in_mat_witag = zeros(N_SC, N_OFDM_SYMS);
 
 % Insert the data and pilot values; other subcarriers will remain at 0
-ifft_in_mat(SC_IND_DATA, :)   = tx_syms_mat;
-ifft_in_mat(SC_IND_PILOTS, :) = pilots_mat;
+%ifft_in_mat(SC_IND_DATA, :)   = tx_syms_mat;
+%ifft_in_mat(SC_IND_PILOTS, :) = pilots_mat;
 
 ifft_in_mat_witag(SC_IND_DATA, :)   = witag_syms_mat;
 ifft_in_mat_witag(SC_IND_PILOTS, :) = witag_pilots_mat;
 
+% simulate the power across distance (/ sqrt(dis))
+% ifft_in_mat_witag = ifft_in_mat_witag.^(snr-1)/snr;
+
 %Perform the IFFT
-tx_payload_mat = ifft(ifft_in_mat, N_SC, 1);
+%tx_payload_mat = ifft(ifft_in_mat, N_SC, 1);
 witag_payload_mat = ifft(ifft_in_mat_witag, N_SC, 1);
 
 % Insert the cyclic prefix
 if(CP_LEN > 0)
-    tx_cp = tx_payload_mat((end-CP_LEN+1 : end), :);
-    tx_payload_mat = [tx_cp; tx_payload_mat];
+    %tx_cp = tx_payload_mat((end-CP_LEN+1 : end), :);
+    %tx_payload_mat = [tx_cp; tx_payload_mat];
     witag_cp = witag_payload_mat((end-CP_LEN+1 : end), :);
     witag_payload_mat = [witag_cp; witag_payload_mat];
 end
 
 % Reshape to a vector
-tx_payload_vec = reshape(tx_payload_mat, 1, numel(tx_payload_mat));
+%tx_payload_vec = reshape(tx_payload_mat, 1, numel(tx_payload_mat));
 witag_payload_vec = reshape(witag_payload_mat, 1, numel(witag_payload_mat));
 
 % Construct the full time-domain OFDM waveform
-tx_vec = [preamble tx_payload_vec];
-witag_vec = [witag_preamble witag_payload_vec];
+%tx_vec = [preamble tx_payload_vec];
+witag_vec = [preamble witag_payload_vec];
 
 % Pad with zeros for transmission to deal with delay through the
 % interpolation filter
-tx_vec_padded = [tx_vec, zeros(1, ceil(length(interp_filt2)/2))];
+%tx_vec_padded = [tx_vec, zeros(1, ceil(length(interp_filt2)/2))];
 witag_vec_padded = [witag_vec, zeros(1, ceil(length(interp_filt2)/2))];
 
 %% Interpolate
@@ -649,17 +629,18 @@ if( INTERP_RATE ~= 2)
    return;
 end
 
-tx_vec_2x = zeros(1, 2*numel(tx_vec_padded));
-tx_vec_2x(1:2:end) = tx_vec_padded;
-tx_vec_air = filter(interp_filt2, 1, tx_vec_2x);
+%tx_vec_2x = zeros(1, 2*numel(tx_vec_padded));
+%tx_vec_2x(1:2:end) = tx_vec_padded;
+%tx_vec_air = filter(interp_filt2, 1, tx_vec_2x);
 wiatg_vec_2x = zeros(1, 2*numel(witag_vec_padded));
 wiatg_vec_2x(1:2:end) = witag_vec_padded;
 witag_vec_air = filter(interp_filt2, 1, wiatg_vec_2x);
 
 
+witag_scale = (snr-1)/snr * TX_SCALE;
 % Scale the Tx vector to +/- 1
-tx_vec_air = TX_SCALE .* tx_vec_air ./ max(abs(tx_vec_air));
-witag_vec_air = TX_SCALE .* witag_vec_air ./ max(abs(witag_vec_air));
+%tx_vec_air = TX_SCALE .* tx_vec_air ./ max(abs(tx_vec_air));
+witag_vec_air = witag_scale .* witag_vec_air ./ max(abs(witag_vec_air));
 
 TX_NUM_SAMPS = length(tx_vec_air);
 
@@ -838,6 +819,9 @@ pilot_phase_corr = exp(-1i*(pilot_phase_err_corr));
 syms_eq_pc_mat = syms_eq_mat .* pilot_phase_corr;
 payload_syms_mat = syms_eq_pc_mat(SC_IND_DATA, :);
 
+% calculate channel estimate H
+H = mean(payload_syms_mat ./ tx_syms_mat, 2);
+
 %% Demodulate
 rx_syms = reshape(payload_syms_mat, 1, N_DATA_SYMS);
 
@@ -859,6 +843,11 @@ end
 
 %% Plot Results
 cf = 0;
+
+% H result
+cf = cf + 1;
+figure(cf); clf;
+plot(1:length(SC_IND_DATA), H);
 
 % Tx signal
 cf = cf + 1;

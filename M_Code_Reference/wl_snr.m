@@ -11,7 +11,7 @@ clear
 % Params:
 USE_WARPLAB_TXRX        = 1;           % Enable WARPLab-in-the-loop (otherwise sim-only)
 WRITE_PNG_FILES         = 0;           % Enable writing plots to PNG
-CHANNEL                 = 11;          % Channel to tune Tx and Rx radios
+CHANNEL                 = 6;          % Channel to tune Tx and Rx radios
 
 % Waveform params
 N_OFDM_SYMS             = 500;         % Number of OFDM symbols
@@ -78,11 +78,11 @@ if(USE_WARPLAB_TXRX)
     % Set up the TX / RX nodes and RF interfaces
     TX_RF     = ifc_ids_TX.RF_A;
     TX_RF_VEC = ifc_ids_TX.RF_A;
-    TX_RF_ALL = ifc_ids_TX.RF_ALL;
+    TX_RF_ALL = ifc_ids_TX.RF_A;
     
     RX_RF     = ifc_ids_TX.RF_B;
     RX_RF_VEC = ifc_ids_TX.RF_B;
-    RX_RF_ALL = ifc_ids_TX.RF_ALL;
+    RX_RF_ALL = ifc_ids_TX.RF_B;
 
     % Set up the interface for the experiment
     wl_interfaceCmd(node_tx, TX_RF_ALL, 'channel', 2.4, CHANNEL);
@@ -155,7 +155,8 @@ if(num_samps_needed > maximum_buffer_len)
 end
 
 %% Generate a payload of random integers
-tx_data = randi(MOD_ORDER, 1, N_DATA_SYMS) - 1;
+%tx_data = randi(MOD_ORDER, 1, N_DATA_SYMS) - 1;
+tx_data = zeros(1, N_DATA_SYMS) + 1 ;
 
 % Functions for data -> complex symbol mapping (like qammod, avoids comm toolbox requirement)
 % These anonymous functions implement the modulation mapping from IEEE 802.11-2012 Section 18.3.5.8
