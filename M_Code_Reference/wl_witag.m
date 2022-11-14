@@ -11,11 +11,11 @@ clear
 % Params:
 USE_WARPLAB_TXRX        = 1;           % Enable WARPLab-in-the-loop (otherwise sim-only)
 WRITE_PNG_FILES         = 0;           % Enable writing plots to PNG
-CHANNEL                 = 6;          % Channel to tune Tx and Rx radios
+CHANNEL                 = 11;          % Channel to tune Tx and Rx radios
 
 % Waveform params
 N_OFDM_SYMS             = 500;         % Number of OFDM symbols
-MOD_ORDER               = 4;           % Modulation order (2/4/16/64 = BSPK/QPSK/16-QAM/64-QAM)
+MOD_ORDER               = 16;           % Modulation order (2/4/16/64 = BSPK/QPSK/16-QAM/64-QAM)
 TX_SCALE                = 1.0;          % Scale for Tx waveform ([0:1])
 
 % OFDM params
@@ -153,8 +153,8 @@ if(num_samps_needed > maximum_buffer_len)
 end
 
 %% Generate a payload of random integers
-%tx_data = randi(MOD_ORDER, 1, N_DATA_SYMS) - 1;
-tx_data = zeros(1, N_DATA_SYMS)  + 1;
+tx_data = randi(MOD_ORDER, 1, N_DATA_SYMS) - 1;
+%tx_data = zeros(1, N_DATA_SYMS) ;
 
 % Functions for data -> complex symbol mapping (like qammod, avoids comm toolbox requirement)
 % These anonymous functions implement the modulation mapping from IEEE 802.11-2012 Section 18.3.5.8
@@ -183,6 +183,7 @@ switch MOD_ORDER
 end
 
 % Reshape the symbol vector to a matrix with one column per OFDM symbol
+%tx_syms = round(tx_syms);
 tx_syms_mat = reshape(tx_syms, length(SC_IND_DATA), N_OFDM_SYMS);
 
 % Define the pilot tone values as BPSK symbols
@@ -569,57 +570,57 @@ end
 % end
 
 % Reshape the symbol vector to a matrix with one column per OFDM symbol
-%tx_syms_mat = reshape(tx_syms, length(SC_IND_DATA), N_OFDM_SYMS);
-witag_syms = zeros(1, N_DATA_SYMS)  ;
+tx_syms_mat = reshape(tx_syms, length(SC_IND_DATA), N_OFDM_SYMS);
+witag_syms = zeros(1, N_DATA_SYMS);
+%witag_syms = tx_syms;
 witag_syms_mat = reshape(witag_syms, length(SC_IND_DATA), N_OFDM_SYMS);
-witag_syms_mat(2:2:end, :) = 1;
+witag_syms_mat(:, 1:2:end) = 1;
 
 % Define the pilot tone values as BPSK symbols
 pilots = [1 1 -1 1].';
+tag_pilots = [0 0 0 0].';
 
 % Repeat the pilots across all OFDM symbols
-%pilots_mat = repmat(pilots, 1, N_OFDM_SYMS);
-witag_pilots_mat = repmat(pilots, 1, N_OFDM_SYMS);
+pilots_mat = repmat(pilots, 1, N_OFDM_SYMS);
+witag_pilots_mat = repmat(tag_pilots, 1, N_OFDM_SYMS);
 
 %% IFFT
 
 % Construct the IFFT input matrix
-%ifft_in_mat = zeros(N_SC, N_OFDM_SYMS);
+ifft_in_mat = zeros(N_SC, N_OFDM_SYMS);
 ifft_in_mat_witag = zeros(N_SC, N_OFDM_SYMS);
 
 % Insert the data and pilot values; other subcarriers will remain at 0
-%ifft_in_mat(SC_IND_DATA, :)   = tx_syms_mat;
-%ifft_in_mat(SC_IND_PILOTS, :) = pilots_mat;
+ifft_in_mat(SC_IND_DATA, :)   = tx_syms_mat;
+ifft_in_mat(SC_IND_PILOTS, :) = pilots_mat;
 
 ifft_in_mat_witag(SC_IND_DATA, :)   = witag_syms_mat;
 ifft_in_mat_witag(SC_IND_PILOTS, :) = witag_pilots_mat;
 
-% simulate the power across distance (/ sqrt(dis))
-% ifft_in_mat_witag = ifft_in_mat_witag.^(snr-1)/snr;
-
 %Perform the IFFT
-%tx_payload_mat = ifft(ifft_in_mat, N_SC, 1);
+tx_payload_mat = ifft(ifft_in_mat, N_SC, 1);
 witag_payload_mat = ifft(ifft_in_mat_witag, N_SC, 1);
 
 % Insert the cyclic prefix
 if(CP_LEN > 0)
-    %tx_cp = tx_payload_mat((end-CP_LEN+1 : end), :);
-    %tx_payload_mat = [tx_cp; tx_payload_mat];
+    tx_cp = tx_payload_mat((end-CP_LEN+1 : end), :);
+    tx_payload_mat = [tx_cp; tx_payload_mat];
     witag_cp = witag_payload_mat((end-CP_LEN+1 : end), :);
     witag_payload_mat = [witag_cp; witag_payload_mat];
 end
 
 % Reshape to a vector
-%tx_payload_vec = reshape(tx_payload_mat, 1, numel(tx_payload_mat));
+tx_payload_vec = reshape(tx_payload_mat, 1, numel(tx_payload_mat));
 witag_payload_vec = reshape(witag_payload_mat, 1, numel(witag_payload_mat));
 
 % Construct the full time-domain OFDM waveform
-%tx_vec = [preamble tx_payload_vec];
-witag_vec = [preamble witag_payload_vec];
+tx_vec = [preamble tx_payload_vec];
+witag_preamble = zeros(1, length(preamble));
+witag_vec = [witag_preamble witag_payload_vec];
 
 % Pad with zeros for transmission to deal with delay through the
 % interpolation filter
-%tx_vec_padded = [tx_vec, zeros(1, ceil(length(interp_filt2)/2))];
+tx_vec_padded = [tx_vec, zeros(1, ceil(length(interp_filt2)/2))];
 witag_vec_padded = [witag_vec, zeros(1, ceil(length(interp_filt2)/2))];
 
 %% Interpolate
@@ -629,17 +630,18 @@ if( INTERP_RATE ~= 2)
    return;
 end
 
-%tx_vec_2x = zeros(1, 2*numel(tx_vec_padded));
-%tx_vec_2x(1:2:end) = tx_vec_padded;
-%tx_vec_air = filter(interp_filt2, 1, tx_vec_2x);
-wiatg_vec_2x = zeros(1, 2*numel(witag_vec_padded));
-wiatg_vec_2x(1:2:end) = witag_vec_padded;
-witag_vec_air = filter(interp_filt2, 1, wiatg_vec_2x);
+tx_vec_2x = zeros(1, 2*numel(tx_vec_padded));
+tx_vec_2x(1:2:end) = tx_vec_padded;
+tx_vec_air = filter(interp_filt2, 1, tx_vec_2x);
+witag_vec_2x = zeros(1, 2*numel(witag_vec_padded));
+witag_vec_2x(1:2:end) = witag_vec_padded;
+witag_vec_air = filter(interp_filt2, 1, witag_vec_2x);
 
 
 witag_scale = (snr-1)/snr * TX_SCALE;
+%witag_scale = 1.5 * TX_SCALE;
 % Scale the Tx vector to +/- 1
-%tx_vec_air = TX_SCALE .* tx_vec_air ./ max(abs(tx_vec_air));
+tx_vec_air = TX_SCALE .* tx_vec_air ./ max(abs(tx_vec_air));
 witag_vec_air = witag_scale .* witag_vec_air ./ max(abs(witag_vec_air));
 
 TX_NUM_SAMPS = length(tx_vec_air);
@@ -788,7 +790,7 @@ if DO_APPLY_SFO_CORRECTION
     pilot_phases = unwrap(angle(fftshift(pilots_f_mat_comp,1)), [], 1);
 
 	% Calculate slope of pilot tone phases vs frequency in each OFDM symbol
-    pilot_spacing_mat = repmat(mod(diff(fftshift(SC_IND_PILOTS)),64).', 1, N_OFDM_SYMS);                        
+    pilot_spacing_mat = repmat(mod(diff(fftshift(SC_IND_PILOTS)),64).', 1, N_OFDM_SYMS);
 	pilot_slope_mat = mean(diff(pilot_phases) ./ pilot_spacing_mat);
 
 	% Calculate the SFO correction phases for each OFDM symbol
@@ -801,7 +803,6 @@ else
 	% Define an empty SFO correction matrix (used by plotting code below)
     pilot_phase_sfo_corr = zeros(N_SC, N_OFDM_SYMS);
 end
-
 
 if DO_APPLY_PHASE_ERR_CORRECTION
     % Extract the pilots and calculate per-symbol phase error
@@ -818,9 +819,6 @@ pilot_phase_corr = exp(-1i*(pilot_phase_err_corr));
 % Apply the pilot phase correction per symbol
 syms_eq_pc_mat = syms_eq_mat .* pilot_phase_corr;
 payload_syms_mat = syms_eq_pc_mat(SC_IND_DATA, :);
-
-% calculate channel estimate H
-H = mean(payload_syms_mat ./ tx_syms_mat, 2);
 
 %% Demodulate
 rx_syms = reshape(payload_syms_mat, 1, N_DATA_SYMS);
@@ -841,13 +839,57 @@ switch(MOD_ORDER)
         rx_data = arrayfun(demod_fcn_64qam, rx_syms);
 end
 
+% calculate channel estimate H and SNR of tag/notag
+H_mat = mean(payload_syms_mat ./ tx_syms_mat); %H = y/x
+noise_mat = abs(payload_syms_mat - tx_syms_mat).^2;
+% snr = Psignal / Prx-Ptx
+tag_SNR = 1.0 ./ mean(noise_mat(:,1:2:end)); % return a row vector containing the mean of each column.
+notag_SNR = 1.0 ./ mean(noise_mat(:,2:2:end));
+tag_SNR = 10*log10(tag_SNR);
+notag_SNR = 10*log10(notag_SNR);
+
+% calculate BER
+tag_rx_data = reshape(rx_data, length(SC_IND_DATA), N_OFDM_SYMS);
+tag_tx_data = reshape(tx_data, length(SC_IND_DATA), N_OFDM_SYMS);
+tag_rx = tag_rx_data(:,1:2:end);
+tag_tx = tag_tx_data(:,1:2:end);
+tag_BER = length(find(dec2bin(bitxor(tag_rx(:), tag_tx(:)),8) == '1'));
+notag_rx = tag_rx_data(:,2:2:end);
+notag_tx = tag_tx_data(:,2:2:end);
+notag_BER = length(find(dec2bin(bitxor(notag_rx(:), notag_tx(:)),8) == '1'));
+fprintf('\nTag Results:\n');
+fprintf('Tag SNR:   %d\n', mean(tag_SNR));
+fprintf('No Tag SNR:   %d\n', mean(notag_SNR));
+fprintf('Tag Bit Errors:  %d (of %d total bits)\n', tag_BER, N_DATA_SYMS/2 * log2(MOD_ORDER));
+fprintf('No Tag Bit Errors:  %d (of %d total bits)\n', notag_BER, N_DATA_SYMS/2 * log2(MOD_ORDER));
+
 %% Plot Results
 cf = 0;
 
-% H result
+%% TAG/NOTAG Symbol constellation
 cf = cf + 1;
 figure(cf); clf;
-plot(1:length(SC_IND_DATA), H);
+tag_sym_mat = payload_syms_mat(:,1:2:end);
+notag_sym_mat = payload_syms_mat(:,2:2:end);
+plot(tag_sym_mat(:),'ro','MarkerSize',1);
+axis square; axis(1.5*[-1 1 -1 1]);
+grid on;
+hold on;
+plot(notag_sym_mat(:),'bo','MarkerSize',1);
+grid on;
+hold on;
+plot(tx_syms_mat(:),'go');
+
+%title('Tx and Rx Constellations')
+legend('Rx','Tx','Location','EastOutside');
+
+% H & SNR result
+cf = cf + 1;
+figure(cf); clf;
+%plot(1:N_OFDM_SYMS, H_mat);
+plot(1:N_OFDM_SYMS/2, tag_SNR, 'r');
+hold on
+plot(1:N_OFDM_SYMS/2, notag_SNR, 'b');
 
 % Tx signal
 cf = cf + 1;
@@ -989,9 +1031,9 @@ end
 cf = cf + 1;
 figure(cf); clf;
 
-evm_mat = abs(payload_syms_mat - tx_syms_mat).^2; % The power of a signal is the sum of the absolute squares
+evm_mat = abs(payload_syms_mat - tx_syms_mat).^2; % The power of a noise is the square of the absolute rx-tx(noise)
 aevms = mean(evm_mat(:)); % rms of the signal, average "power" of a signal.
-snr = 10*log10(1./aevms); % watt to db(10*log10(Power signal/Power noise))
+snr = 10*log10(1./aevms); % average snr = signal power(1)/mean(noise power) watt to db(10*log10(Power signal/Power noise))
 
 subplot(2,1,1)
 plot(100*evm_mat(:),'o','MarkerSize',1)
